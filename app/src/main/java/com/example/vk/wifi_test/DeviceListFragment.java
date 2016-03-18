@@ -14,14 +14,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Created by vk on 2016/3/10.
@@ -65,8 +62,8 @@ public class DeviceListFragment extends ListFragment implements WifiP2pManager.P
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
-        WiFiPeerListAdapter peersAdapter = (WiFiPeerListAdapter) getListAdapter().getItem(position);
-        //connect, Interface
+        WifiP2pDevice device = (WifiP2pDevice) getListAdapter().getItem(position);
+        ((DeviceActionListener)getActivity()).showDetails(device);//这个方法在外面谁implement谁实现
     }
 
     /**
@@ -92,6 +89,11 @@ public class DeviceListFragment extends ListFragment implements WifiP2pManager.P
             public void onCancel(DialogInterface dialog) {
             }
         });
+    }
+
+    public void cleerPeers() {
+        peers.clear();
+        ((WiFiPeerListAdapter)getListAdapter()).notifyDataSetChanged();
     }
 
     private class WiFiPeerListAdapter extends ArrayAdapter<WifiP2pDevice> {
@@ -151,5 +153,7 @@ public class DeviceListFragment extends ListFragment implements WifiP2pManager.P
      */
     public interface DeviceActionListener{
         void connect(WifiP2pConfig config);
+        void disconnect();
+        void showDetails(WifiP2pDevice device);
     }
 }

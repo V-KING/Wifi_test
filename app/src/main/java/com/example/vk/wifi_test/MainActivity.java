@@ -1,10 +1,8 @@
 package com.example.vk.wifi_test;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
-import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
@@ -14,49 +12,26 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
 
-import java.nio.channels.Channel;
-
 import static android.widget.Toast.LENGTH_SHORT;
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity implements DeviceListFragment.DeviceActionListener {
     private final IntentFilter mIntentFilter = new IntentFilter();
     WifiP2pManager mManager;
     WifiP2pManager.Channel mChannel;
     WiFiDirectBroadcastReceiver mReceiver;
-    private boolean mIsWifiP2pEnabled=false;
+    private boolean mIsWifiP2pEnabled = false;
     public static final String TAG = "logtext";
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
     private GoogleApiClient client;
-
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-
-        //获取了mManager ,mChannel
-        setWifiBroadCastRecvActions();
-        mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
-        mChannel = mManager.initialize(this, getMainLooper(), null);
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
-    }
-
-
-
 
 
     private void initP2pDiscover() {
@@ -73,6 +48,42 @@ public class MainActivity extends ActionBarActivity {
         });
     }
 
+
+    private void setWifiBroadCastRecvActions() {
+        //  指示　Wi-Fi P2P　是否开启
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+        // 代表对等节点（peer）列表发生了变化
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+        // 表明Wi-Fi P2P的连接状态发生了改变
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+        // 指示本机this device设备的详细配置发生了变化
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+    }
+
+
+    public void setIsWifiP2pEnabled(boolean isWifiP2pEnabled) {
+        mIsWifiP2pEnabled = isWifiP2pEnabled;
+    }
+
+    public void toast(int text) {
+        Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+
+        //获取了mManager ,mChannel
+        setWifiBroadCastRecvActions();
+        mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
+        mChannel = mManager.initialize(this, getMainLooper(), null);
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -87,17 +98,47 @@ public class MainActivity extends ActionBarActivity {
         unregisterReceiver(mReceiver);
     }
 
-    private void setWifiBroadCastRecvActions() {
-        //  指示　Wi-Fi P2P　是否开启
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
-        // 代表对等节点（peer）列表发生了变化
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
-        // 表明Wi-Fi P2P的连接状态发生了改变
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
-        // 指示本机this device设备的详细配置发生了变化
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.connect();
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW,
+                "Main Page",
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                Uri.parse("android-app://com.example.vk.wifi_test/http/host/path")
+        );
+        AppIndex.AppIndexApi.start(client, viewAction);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // TODO: 2016/3/17
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW,
+               "Main Page",
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                Uri.parse("android-app://com.example.vk.wifi_test/http/host/path")
+        );
+        AppIndex.AppIndexApi.end(client, viewAction);
+        client.disconnect();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -115,12 +156,12 @@ public class MainActivity extends ActionBarActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_discover) {
-            if (!mIsWifiP2pEnabled){
+            if (!mIsWifiP2pEnabled) {
                 toast(R.string.p2p_off_warning);
                 return true;
             }
-            Toast.makeText(this,R.string.discover_peers_button, LENGTH_SHORT).show();
-            DeviceListFragment fragment = (DeviceListFragment) getFragmentManager().findFragmentById(R.id.frag_list );
+            Toast.makeText(this, R.string.discover_peers_button, LENGTH_SHORT).show();
+            DeviceListFragment fragment = (DeviceListFragment) getFragmentManager().findFragmentById(R.id.frag_list);
             fragment.onInitiateDiscovery();
             initP2pDiscover();
             return true;
@@ -129,49 +170,58 @@ public class MainActivity extends ActionBarActivity {
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
+    public void connect(WifiP2pConfig config) {
+        mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
 
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client.connect();
-        Action viewAction = Action.newAction(
-                Action.TYPE_VIEW, // TODO: choose an action type.
-                "Main Page", // TODO: Define a title for the content shown.
-                // TODO: If you have web page content that matches this app activity's content,
-                // make sure this auto-generated web page URL is correct.
-                // Otherwise, set the URL to null.
-                Uri.parse("http://host/path"),
-                // TODO: Make sure this auto-generated app deep link URI is correct.
-                Uri.parse("android-app://com.example.vk.wifi_test/http/host/path")
-        );
-        AppIndex.AppIndexApi.start(client, viewAction);
+            @Override
+            public void onSuccess() {
+                // WiFiDirectBroadcastReceiver will notify us. Ignore for now.
+                Log.d(TAG, "connect onSuccess!!!");
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                Toast.makeText(MainActivity.this, "Connect failed. Retry.",
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
-    public void onStop() {
-        super.onStop();
+    public void disconnect() {
+        final DeviceDetailFragment fragment = (DeviceDetailFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.frag_detail);
+        fragment.resetView();
+        mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener() {
 
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        Action viewAction = Action.newAction(
-                Action.TYPE_VIEW, // TODO: choose an action type.
-                "Main Page", // TODO: Define a title for the content shown.
-                // TODO: If you have web page content that matches this app activity's content,
-                // make sure this auto-generated web page URL is correct.
-                // Otherwise, set the URL to null.
-                Uri.parse("http://host/path"),
-                // TODO: Make sure this auto-generated app deep link URI is correct.
-                Uri.parse("android-app://com.example.vk.wifi_test/http/host/path")
-        );
-        AppIndex.AppIndexApi.end(client, viewAction);
-        client.disconnect();
+            @Override
+            public void onFailure(int reasonCode) {
+                Log.d(TAG, "Disconnect failed. Reason :" + reasonCode);
+
+            }
+
+            @Override
+            public void onSuccess() {
+                fragment.getView().setVisibility(View.GONE);
+            }
+
+        });
     }
 
-    public void setIsWifiP2pEnabled(boolean isWifiP2pEnabled) {
-        mIsWifiP2pEnabled = isWifiP2pEnabled;
+    @Override
+    public void showDetails(WifiP2pDevice device) {
+        DeviceDetailFragment fragment = (DeviceDetailFragment) getSupportFragmentManager().findFragmentById(R.id.frag_detail);
+        fragment.showDetails(device);
     }
-    public void toast(int text){
-       Toast.makeText(this,text,Toast.LENGTH_SHORT).show();
+
+    public void resetData() {
+        DeviceDetailFragment fragmentDetails = (DeviceDetailFragment) getSupportFragmentManager().findFragmentById(R.id.frag_detail);
+        DeviceListFragment fragmentList = (DeviceListFragment) getFragmentManager().findFragmentById(R.id.frag_list);
+        if (fragmentDetails != null ){
+            fragmentDetails.resetView();
+        }
+        if (fragmentList != null){
+            fragmentList.cleerPeers();
+        }
     }
 }

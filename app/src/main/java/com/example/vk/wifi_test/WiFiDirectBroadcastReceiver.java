@@ -3,6 +3,7 @@ package com.example.vk.wifi_test;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.net.NetworkInfo;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
@@ -58,14 +59,23 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
             Log.d(MainActivity.TAG, "P2P peers changed");
 
         } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
-
-            // Connection state changed!  We should probably do something about
-            // that.
-
+            if (mManager== null) {
+                return;
+            }
+            NetworkInfo networkInfo = (NetworkInfo) intent
+                    .getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
+            if (networkInfo.isConnected()) {
+                // we are connected with the other device, request connection
+                // info to find group owner IP
+                DeviceDetailFragment fragment = (DeviceDetailFragment)mActivity.getSupportFragmentManager().findFragmentById(R.id.frag_detail);
+                mManager.requestConnectionInfo(mChannel, fragment);
+            } else {
+                mActivity.resetData();
+            }
         } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
             //更新本机信息
             DeviceListFragment listFragment = (DeviceListFragment) mActivity.getFragmentManager().findFragmentById(R.id.frag_list);
-            listFragment.updateThisDevice((WifiP2pDevice)intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE));
+            listFragment.updateThisDevice((WifiP2pDevice) intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE));
         }
     }
 }
